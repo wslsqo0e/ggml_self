@@ -106,6 +106,12 @@ extern "C" {
     GGML_NORETURN GGML_ATTRIBUTE_FORMAT(3, 4)
     GGML_API void ggml_abort(const char * file, int line, const char * fmt, ...);
 
+    GGML_API void    ggml_time_init(void); // call this once at the beginning of the program
+    GGML_API int64_t ggml_time_ms(void);
+    GGML_API int64_t ggml_time_us(void);
+    GGML_API int64_t ggml_cycles(void);
+    GGML_API int64_t ggml_cycles_per_ms(void);
+
     enum ggml_status {
         GGML_STATUS_ALLOC_FAILED = -2,
         GGML_STATUS_FAILED = -1,
@@ -115,6 +121,11 @@ extern "C" {
 
     // get ggml_status name string
     GGML_API const char * ggml_status_to_string(enum ggml_status status);
+
+    typedef uint16_t ggml_fp16_t;
+
+    // google brain half-precision bfloat16
+    typedef struct { uint16_t bits; } ggml_bf16_t;
 
     // NOTE: always add types at the end of the enum to keep backward compatibility
     enum ggml_type {
@@ -324,6 +335,8 @@ extern "C" {
         GGML_LOG_LEVEL_CONT  = 5, // continue previous log
     };
 
+    typedef void (*ggml_log_callback)(enum ggml_log_level level, const char * text, void * user_data);
+
     // this tensor...
     enum ggml_tensor_flag {
         GGML_TENSOR_FLAG_INPUT  =  1, // ...is an input for the GGML compute graph
@@ -368,6 +381,13 @@ extern "C" {
         void * extra; // extra things e.g. for ggml-cuda.cu
 
         // char padding[4];
+    };
+
+    // scratch buffer
+    struct ggml_scratch {
+        size_t offs;
+        size_t size;
+        void * data;
     };
 
     struct ggml_init_params {
